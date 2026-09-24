@@ -1,0 +1,78 @@
+variables:
+  jets:
+    inputs:
+      - pt
+      - eta
+      - mass
+    labels:
+      - flavor_label
+      - eventNumber
+      - jet_index
+      - n_tracks_raw
+      - n_tracks_stored
+
+  tracks:
+    inputs:
+      - pt_frac
+      - deta
+      - dphi
+      - dr
+      - d0
+      - dz
+      - is_vertexing_input
+      - track_vertex_weight
+      - track_pv_weight
+      - assigned_vtx_z
+      - assigned_vtx_sigma_z
+      - assigned_vtx_sumpt2
+      - assigned_vtx_ntracks
+      - assigned_vtx_is_pv
+      - has_assigned_vtx_time
+      - assigned_vtx_t
+      - assigned_vtx_sigma_t
+    labels:
+      - valid
+
+global_cuts:
+  train:
+    - [eventNumber, "%10<=", 7]
+  val:
+    - [eventNumber, "%10==", 8]
+  test:
+    - [eventNumber, "%10==", 9]
+
+delphes_da4d: &delphes_da4d
+  name: delphes_da4d
+  equal_global_objects: False
+  pattern:
+    - "delphes.999002.e0000_s0000_r0000.DA4D.h5"
+
+jet_region: &jet_region
+  name: jet_region
+  cuts:
+    - [pt, ">", 20.0]
+    - [eta, ">", -2.5]
+    - [eta, "<", 2.5]
+
+components:
+  - region:
+      <<: *jet_region
+    sample:
+      <<: *delphes_da4d
+    classes: [bjets, ujets]
+    num_global_objects: -1
+
+# No resampling in the first DA-vs-DA4D comparison.
+resampling:
+  method: none
+
+global:
+  global_name: jets
+  class_config: classes_btag.yaml
+  batch_size: 100000
+  num_global_objects_estimate: 5000
+  num_global_objects_estimate_norm: 5000
+  base_dir: /HEPData4ML/external_b_tagging
+  ntuple_dir: datasets
+  components_dir: upp_components_da4d
+  out_dir: upp_output_da4d
